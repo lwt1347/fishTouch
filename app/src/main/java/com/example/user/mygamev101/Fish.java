@@ -21,7 +21,7 @@ public class Fish {
 
     private int fishClass; //물고기마다 특성 정하기
 
-    private int hp; //Hp 마다 물고기 색깔 달라지게 할것
+    protected int hp; //Hp 마다 물고기 색깔 달라지게 할것
 
     Random random;
 
