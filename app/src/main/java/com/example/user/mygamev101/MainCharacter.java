@@ -10,7 +10,7 @@ public class MainCharacter {
 
     Point chPoint;
     int damage = 1;
-    int attach_Speed = 9; //최종 진화 = 1
+    int attach_Speed = 3; //최종 진화 = 1
     int attack_Cool_Time = 0;
 
     public MainCharacter(){

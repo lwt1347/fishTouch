@@ -59,6 +59,7 @@ public class Fish {
     }
 
     private int fishDrawStatus = 0;
+
     /**
      * 물고기 헤엄칠때 드로우할 그림 int 형 반환
      */
@@ -129,8 +130,8 @@ public class Fish {
         }
 
         //왼쪽 오른쪽을 넘어가면 방향 반대로
-        if(fishPoint_x <= 0 || fishPoint_x >= window_Width - 80){
-            fishPoint_x = fishPoint_x*-1;
+        if(fishPoint_x <= 0 || fishPoint_x >= window_Width - 150){
+            angleSpeed = angleSpeed*-1;
         }
 
         //헤엄치면서 물고기 그림 상태 변형
@@ -143,63 +144,6 @@ public class Fish {
     }
 
 
-    /**
-     * 물고기 움지기이기 시작
-
-     public void startFishMove(){
-     //쓰레드를 사용하는 방법
-     fishMove = new FishMove();
-     fishMove.start();
-     }*/
-
-/*
-
-
-
-    class FishMove extends Thread{
-        @Override
-        public void run() {
-
-
-            while (true){
-                try {
-                    Thread.sleep(10);
-
-
-
-                    fishPoint_y += fishSpeed;
-                    fishPoint_x += (Math.sin(angle * Math.PI / 180)) * angleSpeed;
-
-                    if(Math.random() < 0.01) {
-                        fishPatternChange();
-                    }
-
-                    //왼쪽 오른쪽을 넘어가면 방향 반대로
-                    if(fishPoint_x <= 0 || fishPoint_x >= window_Width - 80){
-                        fishPoint_x = fishPoint_x*-1;
-                    }
-
-                    //헤엄치면서 물고기 그림 상태 변형
-                    fishDrawStatus++;
-                    if(fishDrawStatus > 3){
-
-                        fishDrawStatus = 0;
-
-                    }
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-
-
-
-
-
-        }
-    }*/
 
 }
 
