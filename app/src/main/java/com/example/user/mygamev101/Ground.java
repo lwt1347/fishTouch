@@ -13,10 +13,14 @@ public class Ground {
     protected int width;
     protected int height;
 
-    Ground( float groundPoint_x){
+    Ground( float groundPoint_x,int width, int height){
 
         this.groundPoint_x = groundPoint_x;
         this.groundPoint_y = groundPoint_y;
+
+        //위드 하이트 이미지 넓이로 가져온다
+        this.width = width;
+        this.height = height;
 
     }
 

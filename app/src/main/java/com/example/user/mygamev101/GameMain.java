@@ -31,7 +31,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
     private MainCharacter mainCharacter; //메인 캐릭터 생성
 
-    private boolean mRun = false; //run 함수 제어
+    private boolean mRun = true; //run 함수 제어 //퍼즈 걸도록 mRun 컨트롤
     private SurfaceHolder mSurfaceHolder; //쓰레드 외부에서 SurfaceHolder를 얻기 위한 선언
 
     private BitmapDrawable image = null;//메모리 절약 기법
@@ -49,6 +49,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
     //Hp5 물고기
     private Bitmap defaultFishHp5_img[] = new Bitmap[4]; //기본 물고기 이미지
 
+    //pause 이미지
+    private Bitmap pause_img[] = new Bitmap[2];
 
     //그라운드 생물체
     private Bitmap ground_SnailHp1_img[] = new Bitmap[4]; //달팽이
@@ -83,7 +85,15 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
     private Bitmap effect_Yellow_img[] = new Bitmap[5];
     private Bitmap effect_Green_img[] = new Bitmap[5];
 
+    //이펙트 팝
     private Bitmap effect_Pop_img[] = new Bitmap[5];
+    private Bitmap effect_Pop2_img[] = new Bitmap[5];
+    private Bitmap effect_Pop3_img[] = new Bitmap[5];
+    private Bitmap effect_Pop4_img[] = new Bitmap[5];
+    private Bitmap effect_Pop5_img[] = new Bitmap[5];
+
+    //퍼지 이미지 변경
+    boolean pause_Push = false;
 
     //물기고 생성
     ArrayList<Fish> fishList = new ArrayList<Fish>();   //물고기를 넣을 어레이 리스트
@@ -108,6 +118,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
         //메인캐릭터 생성
         mainCharacter = new MainCharacter();
+
+        //퍼즈 버튼
+        //Button pause_Button = new Button(_context);
+
 
 
     }
@@ -145,7 +159,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
     ArrayList<Ground> ground = new ArrayList<Ground>();   //물고기를 넣을 어레이 리스트
     Ground_Snail ground_snail;
     public void addGround_Snail(){
-        ground_snail = new Ground_Snail((float)Math.random() * (window_Width-100), 5);
+        ground_snail = new Ground_Snail((float)Math.random() * (window_Width-100), 5, defaultFishHp1_img[0].getWidth(), defaultFishHp1_img[0].getHeight());
         ground.add(ground_snail); //달팽이 생성
     }
 
@@ -155,6 +169,11 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
     public void groundMove(){
         for(int i=0; i<ground.size(); i++){
             ground.get(i).Moving();
+
+            if(ground.get(i).groundPoint_y >= getHeight() - 30){
+                ground.remove(i);
+            }
+
         }
     }
 
@@ -167,13 +186,13 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
         @Override
         public synchronized void run() {
             while(true){
+
                 try {
                     Thread.sleep(3500);
-
-                    addFish(); //물고기 추가
-
-                    addGround_Snail();//달팽이 추가
-
+                    if(mRun) {
+                        addFish(); //물고기 추가
+                        addGround_Snail();//달팽이 추가
+                    }
 
                     //tempInt = fishList.size();
                     //tempStr = String.valueOf(tempInt);
@@ -199,6 +218,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
         public GameThread(SurfaceHolder surfaceHolder){ //더블 버퍼링 같은것
             backGroundImg = Init_Background_Image(_context, 0); //배경
 
+            //퍼즈 이미지
+            pause_img[0] = Init_Pause_Image(_context, 0);
+            pause_img[1] = Init_Pause_Image(_context, 1);
+
             for(int i = 0; i < 4; i++) {
                 defaultFishHp1_img[i] = Init_Hp1_Fish_Image(_context, i); //캐릭터 이미지 추가 hp = 1
                 defaultFishHp2_img[i] = Init_Hp2_Fish_Image(_context, i); //캐릭터 이미지 추가
@@ -211,8 +234,6 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                 ground_SnailHp3_img[i] = Init_Snail_Hp3_Image(_context, i);  //달팽이 이미지
                 ground_SnailHp4_img[i] = Init_Snail_Hp4_Image(_context, i);  //달팽이 이미지
                 ground_SnailHp5_img[i] = Init_Snail_Hp5_Image(_context, i);  //달팽이 이미지
-
-
 
                 shakeFish_img[i] = Init_ShakeFish_Image(_context, i);
             }
@@ -228,6 +249,11 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                 effect_Yellow_img[i] = Init_Effect_Yellow_Image(_context, i);
                 effect_Green_img[i] = Init_Effect_Green_Image(_context, i);
                 effect_Pop_img[i] = Init_Effect_Pop_Image(_context, i);
+                effect_Pop2_img[i] = Init_Effect_Pop2_Image(_context, i);
+                effect_Pop3_img[i] = Init_Effect_Pop3_Image(_context, i);
+                effect_Pop4_img[i] = Init_Effect_Pop4_Image(_context, i);
+                effect_Pop5_img[i] = Init_Effect_Pop5_Image(_context, i);
+
             }
 
         }
@@ -285,6 +311,12 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
             return image.getBitmap();
         }
 
+        //퍼즈 이미지
+        public Bitmap Init_Pause_Image(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.pause_1 + num); //인트형이라 + 1하면 그림 변경됨
+            return image.getBitmap();
+        }
+
 
 
 
@@ -331,9 +363,22 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
             image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.effect_pop_1 + num);
             return image.getBitmap();
         }
-
-
-
+        public Bitmap Init_Effect_Pop2_Image(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.effect_pop2_1 + num);
+            return image.getBitmap();
+        }
+        public Bitmap Init_Effect_Pop3_Image(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.effect_pop3_1 + num);
+            return image.getBitmap();
+        }
+        public Bitmap Init_Effect_Pop4_Image(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.effect_pop4_1 + num);
+            return image.getBitmap();
+        }
+        public Bitmap Init_Effect_Pop5_Image(Context context, int num){
+            image = (BitmapDrawable)context.getResources().getDrawable(R.drawable.effect_pop5_1 + num);
+            return image.getBitmap();
+        }
 
 
 
@@ -341,48 +386,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
         //그리기
         public void doDraw(Canvas canvas){
 
-
+            //배경이미지
             draw.drawBmp(canvas, backGroundImg, 0,0);
-
-            /**
-             *  물고기 그리기
-             */
-
-            for(int i=0; i<fishList.size(); i++){
-                if(fishList.get(i).getFishClass() == 0) {
-                    /**
-                     *  이미지 회전
-                     */
-                if(fishList.get(i).getFishHp() == 1) {
-                    tempFish = draw.rotateImage(defaultFishHp1_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                }else if(fishList.get(i).getFishHp() == 2){
-                    tempFish = draw.rotateImage(defaultFishHp2_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                }else if(fishList.get(i).getFishHp() == 3){
-                    tempFish = draw.rotateImage(defaultFishHp3_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                }else if(fishList.get(i).getFishHp() == 4){
-                    tempFish = draw.rotateImage(defaultFishHp4_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                }else if(fishList.get(i).getFishHp() == 5){
-                    tempFish = draw.rotateImage(defaultFishHp5_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                }
-                draw.drawBmp(canvas, tempFish, fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
-
-                ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                }else if(fishList.get(i).getFishClass() == 5){  //성게
-                    draw.drawBmp(canvas, attackFish_img[0], fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
-
-                    /**
-                     * 드래그로 죽이는 물고기
-                     */
-                }else if(fishList.get(i).getFishClass() == 1){
-                    tempFish = draw.rotateImage(shakeFish_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
-                    draw.drawBmp(canvas, tempFish, fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
-                }
-
-
-            }
-
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
             /**
@@ -422,69 +427,117 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
 
             /**
+             *  물고기 그리기
+             */
+
+            for(int i=0; i<fishList.size(); i++){
+                if(fishList.get(i).getFishClass() == 0) {
+                    /**
+                     *  이미지 회전
+                     */
+                if(fishList.get(i).getFishHp() == 1) {
+                    tempFish = draw.rotateImage(defaultFishHp1_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                }else if(fishList.get(i).getFishHp() == 2){
+                    tempFish = draw.rotateImage(defaultFishHp2_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                }else if(fishList.get(i).getFishHp() == 3){
+                    tempFish = draw.rotateImage(defaultFishHp3_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                }else if(fishList.get(i).getFishHp() == 4){
+                    tempFish = draw.rotateImage(defaultFishHp4_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                }else if(fishList.get(i).getFishHp() == 5){
+                    tempFish = draw.rotateImage(defaultFishHp5_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                }
+                draw.drawBmp(canvas, tempFish, fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
+
+                ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                }else if(fishList.get(i).getFishClass() == 5){  //성게
+                    draw.drawBmp(canvas, attackFish_img[0], fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
+
+                    /**
+                     * 드래그로 죽이는 물고기
+                     */
+                }else if(fishList.get(i).getFishClass() == 1){
+                    tempFish = draw.rotateImage(shakeFish_img[fishList.get(i).getDrawFishStatus()], -fishList.get(i).getAngle());
+                    draw.drawBmp(canvas, tempFish, fishList.get(i).getFishPoint_X(), fishList.get(i).getFishPoint_Y());
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+            /**
              * 메인 캐릭터 그리기
              */
             draw.drawBmp(canvas, mainCharacter_img[0], mainCharacter.getChPoint().x,mainCharacter.getChPoint().y);
 
+            //퍼지 그리기
+            if(!pause_Push) { //안눌렸을때
+                draw.drawBmp(canvas, pause_img[0], window_Width - 100, 10);
+            }else { //눌렸을때
+                draw.drawBmp(canvas, pause_img[1], window_Width - 100, 10);
+            }
         }
+
+
         Paint paint = new Paint();
         /**
          * 게임이 동작하는 구간
          */
         public void run(){
-            while(mRun){
-                //canvas = null;
-                try{
-                    canvas = mSurfaceHolder.lockCanvas(null);
+            while(true) {
+                //퍼즈 걸도록 mRun 컨트롤
+                if (mRun) {
+                    //canvas = null;
+                    try {
+                        canvas = mSurfaceHolder.lockCanvas(null);
 
 
-                    synchronized (mSurfaceHolder){
-
-                        /**
-                         * 그림 그리기 구간
-                         */
-                        doDraw(canvas);
-                        sleep(25);
-
-                        //캐릭터 이동 등
-
-                        deleteFish();
-
-                        //물고기 움직임을 하나의 쓰레드로 작동한다.
-                        fishMove();
-
-                        //그라운드 움직임을 하나의 쓰레드로 작동합니다.
-                        groundMove();
-
-                        //Log.i("[뷰]", "쓰레드 갱신중");
+                        synchronized (mSurfaceHolder) {
 
 
-                        //문어 공격 스피드에 따라서 터치 이벤트 제어
-                        if(mainCharacter.get_Attack_Cool_time() != 0){
-                            mainCharacter.set_Attack_Cool_Time();
+                            /**
+                             * 그림 그리기 구간
+                             */
+                            doDraw(canvas);
+                            sleep(25);
+                            //캐릭터 이동 등
+                            deleteFish();
+                            //물고기 움직임을 하나의 쓰레드로 작동한다.
+                            fishMove();
+                            //그라운드 움직임을 하나의 쓰레드로 작동합니다.
+                            groundMove();
+
+                            //Log.i("[뷰]", "쓰레드 갱신중");
+
+
+                            //문어 공격 스피드에 따라서 터치 이벤트 제어
+                            if (mainCharacter.get_Attack_Cool_time() != 0) {
+                                mainCharacter.set_Attack_Cool_Time();
+                            }
+
                         }
 
-                    }
 
+                    } catch (Exception e) {
 
-                }catch (Exception e){
-
-                }
-                finally {
-                    if(canvas != null){
-                        mSurfaceHolder.unlockCanvasAndPost(canvas);
+                    } finally {
+                        if (canvas != null) {
+                            mSurfaceHolder.unlockCanvasAndPost(canvas);
+                        }
                     }
                 }
             }
         }
 
 
-
+    /*
         public boolean setRun(boolean run){
             mRun = run;
             return mRun;
         }
-
+*/
         //물고기  삭제
         public void deleteFish(){
             for(int i=0; i<fishList.size();i++){
@@ -494,6 +547,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                 if(fishList.get(i).getFishHp() == 0){
 
                     fishList.remove(i);
+
+
                     break;
                 }
 
@@ -524,6 +579,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
     ArrayList<Float> circly_X_Draw = new ArrayList<Float>(); //지워지는 물고기 위치에 이펙트 넣어야한다.
     ArrayList<Float> circly_Y_Draw = new ArrayList<Float>();
+
+    ArrayList<Float> effect_X_Pop2 = new ArrayList<Float>(); //지워지는 달팽이 위치에 이펙트 넣어햐 한다.
+    ArrayList<Float> effect_Y_Pop2 = new ArrayList<Float>();
+
     ArrayList<Integer> effectTempRandomTemp = new ArrayList<Integer>(); //이펙트 효과를 위한 랜덤 리스트
 
     //어떤 이펙트를 넣을것인가 랜덤 변수
@@ -536,8 +595,10 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * 달팽이 삭제
      */
+    int ground_Remove_Temp = -1;
     public boolean deleteGround(float x, float y){
 
+        ground_Remove_Temp = -1;
         for(int i=0; i<ground.size(); i++){
 
 
@@ -547,20 +608,78 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                     && y >= ground.get(i).get_Ground_Point_y()
                     && y <= ground.get(i).get_Ground_Point_y() + ground.get(i).get_GroundPoint_Height()){
 
-                //클릭된 달팽이의체력을 깍고 0 보다 작거나 같으면 삭제
-                ground.get(i).set_Ground_Hp_Minus();
-                if(ground.get(i).get_Ground_Hp() <= 0) {
-                    ground.remove(i);
-                }
-                return true;
+                ground_Remove_Temp = i;
+                break;
+
+
+
+
 
             }
 
         }
+
+
+
+
+        if(ground_Remove_Temp >= 0) {
+
+            if(ground.get(ground_Remove_Temp).get_Ground_Hp() > 1) //마지막쓰레드 돌때 삭제와 겹쳐서 다른곳에서 그려지기 때문에 마지막 루틴 제거
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    temp = random.nextInt(4);
+
+                    for(int j=0; j<effect_Pop2_img.length-1; j++)
+                    {
+                        try {
+                            Thread.sleep(15);
+                            if(ground_Remove_Temp < 0){
+                                break;
+                            }
+                            //팝 이펙트 random.nextInt(6)
+                            if(temp == 0){
+                                effectTemp = effect_Pop2_img[j];
+                            }else if(temp == 1){
+                                effectTemp = effect_Pop3_img[j];
+                            }else if(temp == 2){
+                                effectTemp = effect_Pop4_img[j];
+                            }else {
+                                effectTemp = effect_Pop5_img[j];
+                            }
+                            draw.drawBmp(canvas, effectTemp,
+                                    ground.get(ground_Remove_Temp).get_Ground_Point_x() + random.nextInt(ground_SnailHp1_img[0].getWidth()) - 35,
+                                    ground.get(ground_Remove_Temp).get_Ground_Point_y() + random.nextInt(ground_SnailHp1_img[0].getHeight()) - 35);
+
+                        }catch (Exception e){
+
+                        }
+
+                    }
+
+                }
+            }).start();
+
+
+
+
+            //클릭된 달팽이의체력을 깍고 0 보다 작거나 같으면 삭제
+            ground.get(ground_Remove_Temp).set_Ground_Hp_Minus();
+
+            if(ground.get(ground_Remove_Temp).get_Ground_Hp() <= 0) {
+                ground.remove(ground_Remove_Temp);
+            }
+            return true;
+        }
+
+
         return false;
 
     }
 
+
+    int temp;
 
     //터치 이벤트
     @Override
@@ -568,16 +687,22 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
         //터치 이벤트 하고 물고기 생성 쓰레드가 엮여서 순서가 바뀔수도 있다.
 
+
+
+
         if(event.getAction() == MotionEvent.ACTION_DOWN){
             Log.d("MyView","View 의 손가락이 눌렸습니다." );
+
 
 
             //달팽이 체크 먼저 한다. 누른곳의 좌표가 달팽이와 겹치면 달팽이먼저 제거
             Log.d("MyView","좌표 x = " + event.getX() + "y =  " +event.getY());
 
 
-            //달팽이 삭제
-            if(deleteGround(event.getX(), event.getY())){
+            //퍼즈 컨트롤
+            if(pause_Effect(event.getX(), event.getY())){
+
+            }else if(deleteGround(event.getX(), event.getY())){ //달팽이 삭제
 
             }else {
                 //문어 공격 속도로 제어한다. 쿨타임 효과
@@ -588,13 +713,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
             }
 
 
-
-
-
-
-
         } else if(event.getAction() == MotionEvent.ACTION_UP){
             Log.d("MyView","View 의 손가락이 때졌습니다.." );
+
 
         } else if(event.getAction() == MotionEvent.ACTION_MOVE){ //이때 기본 물고기 안뒤지게 해야함
 
@@ -612,6 +733,24 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
 
         return true;
+    }
+
+    //퍼지 효과
+    public boolean pause_Effect(float x, float y){
+
+        //window_Width - 100, 10
+    //퍼지 이미지의 위치
+        if(x >= window_Width - 100
+                && x <= window_Width - 100 + pause_img[0].getWidth()
+                && y >= 10
+                && y <= 10 + + pause_img[0].getHeight()){
+                pause_Push = true;
+                mRun = false;  //일시정지 화면 띄워야 함.
+            return true;
+        }
+        return false;
+
+
     }
 
     //터치 이벤트시 물고기 클래스 넘버를 받아서 상황에 맞추어서 삭제
@@ -650,29 +789,30 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                     //물고기 터치할때 이벤트 발생
                     //draw.drawBmp(canvas, defaultFish_img[0]  , fishList.get(smallFishIndex).getFishPoint_X() , fishList.get(smallFishIndex).getFishPoint_Y());
 
-                    //이펙트 그리기
-                    circly_X_Draw.add(fishList.get(smallFishIndex).getFishPoint_X().floatValue());
-                    circly_Y_Draw.add(fishList.get(smallFishIndex).getFishPoint_Y().floatValue());
-                    effectTempRandomTemp.add(random.nextInt(4));
 
-                    //paint.setStyle(Paint.Style.STROKE);
-                    //paint.setColor(Color.argb(255, 255, 255, 0));
-
+                    /**
+                     * 이펙트 그리기 기본 물고기 이펙트
+                     */
                     //지워지는 좌표 어레이 리스트로 받아서 그 위치에 쓰레드 돌림
-                    new Thread(new Runnable() {
+                    if(fish_Class == 0) { //기본 물고기 일때만 이펙트 효과
+                        //
+                        circly_X_Draw.add(fishList.get(smallFishIndex).getFishPoint_X().floatValue());
+                        circly_Y_Draw.add(fishList.get(smallFishIndex).getFishPoint_Y().floatValue());
+                        effectTempRandomTemp.add(random.nextInt(4));
 
-                        @Override
-                        public void run() {
+                        //paint.setStyle(Paint.Style.STROKE);
+                        //paint.setColor(Color.argb(255, 255, 255, 0));
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
 
-
-                            if(fish_Class == 0){ //기본 물고기 일때만 이펙트 효과
-                                for (int i = 0; i < 5; i++) {
+                                for (int i = 2; i < 5; i++) {
                                     try {
                                         Thread.sleep(15);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
-                                    for (int j = 0; j<circly_X_Draw.size(); j++) {
+                                    for (int j = 0; j < circly_X_Draw.size(); j++) {
 
 
                                        /* paint.setStrokeWidth(i * 2);
@@ -682,31 +822,30 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
 
                                                 , i * 15, paint);*/
                                         //랜덤 이팩트
-                                        if(effectTempRandomTemp.get(0) == 0) {
+                                        if (effectTempRandomTemp.get(0) == 0) {
                                             effectTemp = effect_Orange_img[i];
-                                        }else if(effectTempRandomTemp.get(0) == 1){
+                                        } else if (effectTempRandomTemp.get(0) == 1) {
                                             effectTemp = effect_Blue_img[i];
-                                        }else if(effectTempRandomTemp.get(0) == 2){
+                                        } else if (effectTempRandomTemp.get(0) == 2) {
                                             effectTemp = effect_Yellow_img[i];
-                                        }else{
+                                        } else {
                                             effectTemp = effect_Green_img[i];
                                         }
-
-
-
-                                        draw.drawBmp(canvas, effectTemp, circly_X_Draw.get(j),circly_Y_Draw.get(j));
-
+                                        draw.drawBmp(canvas, effectTemp,
+                                                circly_X_Draw.get(j) - 15
+                                                , circly_Y_Draw.get(j));
                                     }
                                 }
+                                circly_X_Draw.remove(0);
+                                circly_Y_Draw.remove(0);
+                                effectTempRandomTemp.remove(0);
                             }
+                        }).start();
+                    }
 
 
 
-                            circly_X_Draw.remove(0);
-                            circly_Y_Draw.remove(0);
-                            effectTempRandomTemp.remove(0);
-                        }
-                    }).start();
+
 
                     //fishList.remove(smallFishIndex); //가장 가까운 물고기 삭제 / 성게가 아니고 가장 가까운 물고기 부터 삭제하는 루틴을 만들어야함
                     if(fishList.get(smallFishIndex).getFishHp() > 0) { //드래그 속도까 빨라서 0밑으로내려감 방지
@@ -715,8 +854,8 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
                         if(fish_Class == 1) {
                             //드래그시 공격당한다는 느낌 주기 위해
                             draw.drawBmp(canvas, effect_Pop_img[random.nextInt(6)],
-                                    fishList.get(smallFishIndex).getFishPoint_X() + random.nextInt(50),
-                                    fishList.get(smallFishIndex).getFishPoint_Y() + random.nextInt(30));
+                                    fishList.get(smallFishIndex).getFishPoint_X() + random.nextInt(shakeFish_img[0].getWidth() - 25),
+                                    fishList.get(smallFishIndex).getFishPoint_Y() + random.nextInt(shakeFish_img[0].getHeight()) - 35);
                         }
                     }
                 }else {
@@ -779,7 +918,9 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
             thread.start();
             //gameMainThread.start();
         }
-        thread.setRun(true);
+        //thread.setRun(true);
+        mRun = true;
+
     }
 
     @Override
@@ -797,7 +938,7 @@ public class GameMain extends SurfaceView implements SurfaceHolder.Callback {
         }catch (Exception e){
 
         }
-        thread.setRun(false);
+        //thread.setRun(false);
     }
 
 }

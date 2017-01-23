@@ -12,11 +12,10 @@ public class Ground_Snail extends Ground{
     int speed = 1;
 
     Random random;
-    Ground_Snail(float groundPoint_x, int hp) {
-        super( groundPoint_x);
+    Ground_Snail(float groundPoint_x, int hp, int width, int height) {
+        super( groundPoint_x, width, height);
         random = new Random();
-        width = 75;
-        height = 140;
+
         this.hp = hp;
     }
 
